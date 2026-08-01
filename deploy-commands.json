@@ -1,0 +1,29 @@
+// deploy-commands.js
+//
+// Roda isso UMA VEZ (localmente ou como "Job" no Render) pra registrar o
+// comando /painel no Discord. Não precisa rodar de novo depois, a não ser
+// que você mude o comando.
+//
+// Uso: DISCORD_TOKEN=... CLIENT_ID=... GUILD_ID=... node deploy-commands.js
+// (GUILD_ID é opcional: se não passar, registra globalmente, que demora
+// até 1h pra propagar; com GUILD_ID aparece na hora, só nesse servidor)
+
+const { REST, Routes } = require("discord.js");
+const painelCommand = require("./commands/painel");
+
+const commands = [painelCommand.data.toJSON()];
+
+const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
+
+(async () => {
+  try {
+    const route = process.env.GUILD_ID
+      ? Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID)
+      : Routes.applicationCommands(process.env.CLIENT_ID);
+
+    await rest.put(route, { body: commands });
+    console.log("Comando /painel registrado com sucesso.");
+  } catch (err) {
+    console.error(err);
+  }
+})();
